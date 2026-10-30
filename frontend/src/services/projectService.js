@@ -49,15 +49,16 @@ export async function createProject(data) {
   if (duplicate) throw new Error('A project with this name already exists');
   const now = new Date().toISOString();
   const project = {
-    id: `p_${Date.now()}`,
+    id: `project-${Date.now()}`,
     name,
     description: (data.description || '').trim(),
-    status: data.status || 'Active',
-    documents: 0,
+    icon: data.icon || 'folder',
+    status: 'attention',
     repositories: 0,
-    members: data.members || ['u1'],
-    createdAt: now,
-    updatedAt: now,
+    documents: 0,
+    commits: 0,
+    lastSynced: 'Never',
+    indexingProgress: 0,
   };
   list.unshift(project);
   save(list);

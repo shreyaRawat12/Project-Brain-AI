@@ -1,0 +1,96 @@
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: rgba(66, 97, 106, 0.35);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform .15s ease, border-color .15s ease;
+}
+
+.stat-card:hover { transform: translateY(-2px); border-color: rgba(117,198,176,0.35); }
+
+.stat-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: rgba(21,157,145,0.18);
+  color: var(--secondary);
+  display: grid; place-items: center;
+}
+
+.stat-value { font-size: 24px; font-weight: 700; }
+.stat-label { font-size: 12px; color: var(--muted); }
+
+.project-count {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(29,53,70,0.6);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s ease;
+}
+
+.filter-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.indexing-info { margin-top: 4px; }
+
+.progress-track {
+  height: 6px;
+  background: rgba(29,53,70,0.6);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.progress-bar.status-synced { background: var(--primary); }
+.progress-bar.status-processing { background: #3b82f6; }
+.progress-bar.status-attention { background: #f59e0b; }
+
+.status-badge.status-synced { background: rgba(21,157,145,0.18); color: var(--secondary); }
+.status-badge.status-processing { background: rgba(59,130,246,0.18); color: #93c5fd; }
+.status-badge.status-attention { background: rgba(245,158,11,0.18); color: #fcd34d; }
+
+.search-input-wrap { position: relative; }
+.search-input-wrap .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
