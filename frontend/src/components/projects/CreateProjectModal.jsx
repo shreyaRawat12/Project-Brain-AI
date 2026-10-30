@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Modal from '../common/Modal';
 
 export default function CreateProjectModal({ isOpen, onClose, onSubmit, initial, existingNames = [] }) {
   const isEdit = Boolean(initial);
@@ -18,8 +18,6 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit, initial,
       setSubmitting(false);
     }
   }, [isOpen, initial]);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,55 +46,44 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit, initial,
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
-        <h2>{isEdit ? 'Edit Project' : 'Create New Project'}</h2>
-        <p className="sub">{isEdit ? 'Update project details.' : 'Add a new project to your workspace.'}</p>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Project Name *</label>
-            <input
-              className="form-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Project Brain AI"
-              autoFocus
-            />
-            {error && <div className="form-error">{error}</div>}
-          </div>
-          <div className="form-group">
-            <label className="form-label">Project Description</label>
-            <textarea
-              className="form-textarea"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short description of the project..."
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Project Status</label>
-            <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="Active">Active</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </div>
-          <div className="modal-actions">
-            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={submitting}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Project'}
-            </button>
-          </div>
-        </form>
-        <button
-          onClick={onClose}
-          style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
-      </div>
-    </div>
+    <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Edit Project' : 'Create New Project'} subtitle={isEdit ? 'Update project details.' : 'Add a new project to your workspace.'}>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label className="form-label">Project Name *</label>
+          <input
+            className="form-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Project Brain AI"
+            autoFocus
+          />
+          {error && <div className="form-error">{error}</div>}
+        </div>
+        <div className="form-group">
+          <label className="form-label">Project Description</label>
+          <textarea
+            className="form-textarea"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Short description of the project..."
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Project Status</label>
+          <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="Active">Active</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={submitting}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Project'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

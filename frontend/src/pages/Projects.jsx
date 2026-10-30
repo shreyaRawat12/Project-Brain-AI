@@ -6,7 +6,7 @@ import { useProjects } from '../context/ProjectContext';
 import ProjectFilters from '../components/projects/ProjectFilters';
 import ProjectGrid from '../components/projects/ProjectGrid';
 import CreateProjectModal from '../components/projects/CreateProjectModal';
-import DeleteConfirmDialog from '../components/projects/DeleteConfirmDialog';
+import DeleteConfirmation from '../components/projects/DeleteConfirmation';
 
 export default function Projects() {
   const { user, isAdmin } = useAuth();
@@ -211,7 +211,7 @@ export default function Projects() {
         existingNames={projects.map((p) => p.name)}
       />
 
-      <DeleteConfirmDialog
+      <DeleteConfirmation
         project={deleteTarget}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
