@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, RefreshCw, FolderKanban } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import * as projectService from '../services/projectService';
+import { useProjects } from '../context/ProjectContext';
 import ProjectFilters from '../components/projects/ProjectFilters';
 import ProjectGrid from '../components/projects/ProjectGrid';
 import CreateProjectModal from '../components/projects/CreateProjectModal';
@@ -12,9 +12,7 @@ export default function Projects() {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { projects, loading, error, fetchProjects, createProject, updateProject, archiveProject, deleteProject } = useProjects();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -30,19 +28,6 @@ export default function Projects() {
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
-
-  const fetchProjects = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await projectService.getProjects();
-      setProjects(data);
-    } catch (e) {
-      setError(e.message || 'Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchProjects();
@@ -89,12 +74,10 @@ export default function Projects() {
 
   const handleModalSubmit = async (data) => {
     if (editingProject) {
-      const updated = await projectService.updateProject(editingProject.id, data);
-      setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      const updated = await updateProject(editingProject.id, data);
       showToast('Project updated successfully', 'success');
     } else {
-      const created = await projectService.createProject(data);
-      setProjects((prev) => [created, ...prev]);
+      await createProject(data);
       showToast('Project created successfully', 'success');
     }
   };
@@ -106,8 +89,7 @@ export default function Projects() {
 
   const handleArchive = async (project) => {
     try {
-      const updated = await projectService.archiveProject(project.id);
-      setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      await archiveProject(project.id);
       showToast('Project archived', 'success');
     } catch (e) {
       showToast(e.message || 'Failed to archive', 'error');
@@ -122,8 +104,7 @@ export default function Projects() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await projectService.deleteProject(deleteTarget.id);
-      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      await deleteProject(deleteTarget.id);
       showToast('Project deleted', 'success');
       setDeleteTarget(null);
     } catch (e) {

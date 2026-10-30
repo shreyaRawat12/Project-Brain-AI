@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/common/Layout';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Projects from './pages/Projects';
 import Dashboard from './pages/Dashboard';
 import ProjectKnowledge from './pages/ProjectKnowledge';
@@ -10,6 +12,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />

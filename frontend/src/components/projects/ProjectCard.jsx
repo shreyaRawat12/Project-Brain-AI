@@ -1,13 +1,7 @@
 import { Folder, FileText, GitBranch, Calendar, ArrowRight } from 'lucide-react';
 import ProjectActions from './ProjectActions';
 
-function formatDate(iso) {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch (e) {
-    return iso;
-  }
-}
+import { formatDate } from '../../utils/formatDate';
 
 export default function ProjectCard({ project, view, onOpen, onEdit, onArchive, onDelete, isAdmin }) {
   return (

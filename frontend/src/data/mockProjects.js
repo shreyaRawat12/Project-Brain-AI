@@ -1,0 +1,48 @@
+export const mockProjects = [
+  {
+    id: 'p1',
+    name: 'Project Brain AI',
+    description: 'AI-powered institutional knowledge management system combining documents and GitHub repositories.',
+    status: 'Active',
+    documents: 12,
+    repositories: 2,
+    members: ['u1', 'u2'],
+    createdAt: '2026-09-01T10:00:00.000Z',
+    updatedAt: '2026-10-28T14:30:00.000Z',
+  },
+  {
+    id: 'p2',
+    name: 'Onboarding Portal',
+    description: 'Centralized onboarding knowledge base for new engineers and product teams.',
+    status: 'Active',
+    documents: 8,
+    repositories: 1,
+    members: ['u1'],
+    createdAt: '2026-09-15T09:00:00.000Z',
+    updatedAt: '2026-10-20T11:15:00.000Z',
+  },
+  {
+    id: 'p3',
+    name: 'Legacy Migration',
+    description: 'Archive of legacy system documentation and migration notes.',
+    status: 'Archived',
+    documents: 24,
+    repositories: 0,
+    members: ['u2'],
+    createdAt: '2026-07-01T08:00:00.000Z',
+    updatedAt: '2026-08-12T16:45:00.000Z',
+  },
+  {
+    id: 'p4',
+    name: 'Customer Support KB',
+    description: 'Knowledge base for support agents with troubleshooting guides and runbooks.',
+    status: 'Active',
+    documents: 16,
+    repositories: 3,
+    members: ['u1', 'u2'],
+    createdAt: '2026-08-10T12:00:00.000Z',
+    updatedAt: '2026-10-25T09:20:00.000Z',
+  },
+];
+
+export default mockProjects;

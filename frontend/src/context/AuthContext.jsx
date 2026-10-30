@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { mockUsers } from '../data/mockUsers';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +13,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       // ignore
     }
-    return { id: 'u1', name: 'Alex Morgan', email: 'alex@projectbrain.ai', role: 'Admin' };
+    return mockUsers[0];
   });
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'Admin';
 
   return (
-    <AuthContext.Provider value={{ user, setUser, setRole, isAdmin }}>
+    <AuthContext.Provider value={{ user, setUser, setRole, isAdmin, mockUsers }}>
       {children}
     </AuthContext.Provider>
   );
