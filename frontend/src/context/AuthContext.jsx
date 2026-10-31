@@ -1,77 +1,68 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { mockUsers } from '../data/mockUsers';
+import * as authService from '../services/authService';
 
 const AuthContext = createContext(null);
-const SESSION_KEY = 'pb_auth_session';
-const USERS_KEY = 'pb_auth_users';
+const TOKEN_KEY = 'pb_auth_token';
+const USER_KEY = 'pb_auth_user';
 const INTRO_KEY = 'pb_intro_seen';
 
-function loadUsers() {
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (e) {}
-  localStorage.setItem(USERS_KEY, JSON.stringify(mockUsers));
-  return [...mockUsers];
-}
-
 export function AuthProvider({ children }) {
-  const [users, setUsers] = useState(loadUsers);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) {
-        const session = JSON.parse(raw);
-        if (session?.user && session?.token) {
-          setUser(session.user);
-          setToken(session.token);
-        }
-      }
-    } catch (e) {}
-    setLoading(false);
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (!storedToken) {
+      setLoading(false);
+      return;
+    }
+
+    setToken(storedToken);
+
+    authService
+      .me(storedToken)
+      .then((me) => {
+        setUser(me);
+        localStorage.setItem(USER_KEY, JSON.stringify(me));
+      })
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('pb_auth_session');
+        setToken(null);
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const persistSession = (u, t) => {
     setUser(u);
     setToken(t);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ user: u, token: t }));
+    localStorage.setItem(TOKEN_KEY, t);
+    localStorage.setItem(USER_KEY, JSON.stringify(u));
   };
 
   const login = useCallback(async (email, password) => {
-    await new Promise((r) => setTimeout(r, 600));
-    if (email.trim().toLowerCase() !== 'xyz@gmail.com' || password !== '12345678') {
-      throw new Error('Invalid demo credentials. Use xyz@gmail.com / 12345678.');
-    }
-    const found = users.find((u) => u.email.toLowerCase() === 'xyz@gmail.com') || { id: 'demo-user', name: 'Demo User', email: 'xyz@gmail.com', role: 'Admin' };
-    const t = `demo-token-${Date.now()}`;
-    persistSession(found, t);
-    return found;
-  }, [users]);
+    const data = await authService.login({ email, password });
+    persistSession(data.user, data.access_token);
+    return data.user;
+  }, []);
 
   const signup = useCallback(async (name, email, password) => {
-    await new Promise((r) => setTimeout(r, 700));
-    const exists = users.some((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (exists) throw new Error('An account with this email already exists.');
-    const newUser = { id: `u-${Date.now()}`, name: name.trim(), email: email.trim(), role: 'Developer' };
-    const next = [newUser, ...users];
-    setUsers(next);
-    localStorage.setItem(USERS_KEY, JSON.stringify(next));
-    const t = `demo-token-${Date.now()}`;
-    persistSession(newUser, t);
-    return newUser;
-  }, [users]);
+    const data = await authService.signup({ name, email, password });
+    persistSession(data.user, data.access_token);
+    return data.user;
+  }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const currentToken = localStorage.getItem(TOKEN_KEY);
+    await authService.logout(currentToken);
     setUser(null);
     setToken(null);
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('pb_auth_session');
     localStorage.removeItem(INTRO_KEY);
   }, []);
 

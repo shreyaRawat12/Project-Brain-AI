@@ -24,5 +24,6 @@ app.add_middleware(
 def health():
     return {"status": "ok"}
 
-from app.routes import assistant
+from app.routes import assistant, auth
 app.include_router(assistant.router)
+app.include_router(auth.router)

@@ -5,3 +5,10 @@ sentence-transformers
 psycopg[binary]
 google-genai
 python-dotenv
+sqlalchemy>=2.0
+alembic>=1.13
+pgvector>=0.3
+pydantic-settings>=2.0
+bcrypt>=4.1.2
+PyJWT>=2.8.0
+email-validator>=2.1.0

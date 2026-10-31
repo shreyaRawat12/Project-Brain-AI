@@ -192,10 +192,6 @@ export default function Login() {
                 </>
               )}
             </div>
-
-            <div className="demo-note auth-demo-note">
-              Demo credentials — Email: xyz@gmail.com · Password: 12345678
-            </div>
           </motion.div>
         </AnimatePresence>
       </div>

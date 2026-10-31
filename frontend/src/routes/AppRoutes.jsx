@@ -18,7 +18,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/intro" element={<Intro />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/" element={<Navigate to="/intro" replace />} />
       <Route element={<ProtectedRoute />}>
