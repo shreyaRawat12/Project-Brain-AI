@@ -100,9 +100,40 @@
   font-size: 12px;
   cursor: pointer;
 }
+.team-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+.logo-glow {
+  filter: drop-shadow(0 0 28px rgba(21,157,145,0.7));
+  animation: logoPulse 2.4s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% { filter: drop-shadow(0 0 24px rgba(21,157,145,0.55)); }
+  50% { filter: drop-shadow(0 0 40px rgba(117,198,176,0.85)); }
+}
+.sound-toggle {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 5;
+  background: transparent;
+  border: 1px solid rgba(117,198,176,0.3);
+  color: var(--muted, #9ab);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
 .skip-intro:hover { color: var(--text); border-color: var(--secondary); }
+
 
 @media (max-width: 680px) {
   .intro-tech, .intro-blitz { font-size: 56px; }
   .logo-img { max-width: 280px; }
 }
+.sound-toggle:hover { color: var(--text, #e5f0ec); border-color: var(--secondary, #75C6B0); }
