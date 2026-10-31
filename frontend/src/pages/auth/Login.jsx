@@ -75,6 +75,21 @@ export default function Login() {
   };
 
   return (
+    <>
+    <div className="stickmen-layer">
+      {[0,1,2,3,4].map((i) => (
+        <div key={i} className={`stickman stickman-${i}`}>
+          <svg viewBox="0 0 24 40" width="20" height="34">
+            <circle cx="12" cy="6" r="4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="12" y1="10" x2="12" y2="24" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="12" y1="14" x2="6" y2="20" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="12" y1="14" x2="18" y2="12" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="12" y1="24" x2="8" y2="34" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="12" y1="24" x2="16" y2="34" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        </div>
+      ))}
+    </div>
     <div className="auth-root">
       <div className="auth-left">
         <div className="auth-brand">
@@ -185,5 +200,6 @@ export default function Login() {
         </AnimatePresence>
       </div>
     </div>
+    </>
   );
 }
