@@ -52,4 +52,8 @@ export async function apiRequest(path, options = {}) {
   return res.json();
 }
 
+export function getAuthToken() {
+  return getStoredToken();
+}
+
 export default apiRequest;

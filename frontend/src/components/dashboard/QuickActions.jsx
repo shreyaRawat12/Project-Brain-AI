@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import { Github, Upload, GitCommit, Sparkles } from 'lucide-react';
 import Modal from '../common/Modal';
+import { useProjects } from '../../context/ProjectContext';
+import * as knowledgeService from '../../services/knowledgeService';
 
 export default function QuickActions() {
   const navigate = useNavigate();
   const reduce = useReducedMotion();
+  const { projects } = useProjects();
+  const projectId = projects[0]?.id;
   const [repoOpen, setRepoOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
@@ -25,20 +29,36 @@ export default function QuickActions() {
 
   const handleConnect = async () => {
     if (!repoUrl.trim()) return;
+    if (!projectId) {
+      setConnectedMsg('Create a project first.');
+      return;
+    }
     setConnecting(true);
     setConnectedMsg('');
-    await new Promise((r) => setTimeout(r, 700));
-    setConnecting(false);
-    setConnectedMsg('Demo: repository connection workflow initiated. Backend integration is not enabled.');
-    setRepoUrl('');
+    try {
+      await knowledgeService.connectRepository(projectId, { clone_url: repoUrl.trim() });
+      setConnectedMsg('Repository connected.');
+      setRepoUrl('');
+    } catch (e) {
+      setConnectedMsg(e.message || 'Repository connection failed.');
+    } finally {
+      setConnecting(false);
+    }
   };
 
-  const handleFiles = (e) => {
+  const handleFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     setSelectedFiles(files);
     setUploadOpen(true);
     e.target.value = '';
+    if (!projectId) return;
+    try {
+      await knowledgeService.uploadDocument(projectId, files[0]);
+      setConnectedMsg('Document uploaded.');
+    } catch (err) {
+      setConnectedMsg(err.message || 'Upload failed.');
+    }
   };
 
   return (

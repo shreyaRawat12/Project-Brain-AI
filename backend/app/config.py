@@ -31,7 +31,10 @@ class Settings(BaseSettings):
     # Optional / future use
     GEMINI_API_KEY: Optional[str] = None
     JWT_SECRET: Optional[str] = None
+    SUPABASE_URL: str = "https://iarpuoutiszcvdxmxmfh.supabase.co"
     STORAGE_PATH: str = "storage"
+    ENVIRONMENT: str = "production"
+    DEBUG: bool = False
 
     @field_validator("DATABASE_URL")
     @classmethod

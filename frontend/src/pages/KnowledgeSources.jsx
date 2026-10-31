@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from 'framer-motion';
 import { Upload, Code2, Wifi, Check, Target, FileText, MoreHorizontal } from 'lucide-react';
-import { mockRepositories } from '../data/mockRepositories';
-import { mockDocuments } from '../data/mockDocuments';
+import { useProjects } from '../context/ProjectContext';
+import * as knowledgeService from '../services/knowledgeService';
 import './KnowledgeSources.css';
 
 const CATEGORIES = ['All', 'Architecture', 'Engineering', 'Operations', 'Incident'];
@@ -129,15 +129,75 @@ function DocumentDropzone({ onFiles }) {
 
 export default function KnowledgeSources() {
   const reduce = useReducedMotion();
+  const { projects } = useProjects();
   const [category, setCategory] = useState('All');
   const [uploadMsg, setUploadMsg] = useState('');
+  const [repositories, setRepositories] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [knowledgeProjectId, setKnowledgeProjectId] = useState(null);
 
-  const filteredDocs = category === 'All' ? mockDocuments : mockDocuments.filter((d) => d.category === category);
+  useEffect(() => {
+    const projectId = projects[0]?.id;
+    setKnowledgeProjectId(projectId || null);
+    if (!projectId) {
+      setRepositories([]);
+      setDocuments([]);
+      return;
+    }
 
-  const handleFiles = (files) => {
+    let active = true;
+    Promise.all([
+      knowledgeService.getRepositories(projectId),
+      knowledgeService.getDocuments(projectId),
+    ])
+      .then(([repos, docs]) => {
+        if (!active) return;
+        setRepositories(repos);
+        setDocuments(docs.map((d) => ({
+          id: d.id,
+          name: d.name,
+          source: d.mime_type || 'upload',
+          updated: d.created_at,
+          score: 0,
+          category: 'Engineering',
+        })));
+      })
+      .catch((e) => {
+        if (active) setUploadMsg(e.message || 'Failed to load knowledge sources.');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [projects]);
+
+  const filteredDocs = category === 'All' ? documents : documents.filter((d) => d.category === category);
+
+  const handleFiles = async (files) => {
+    if (!knowledgeProjectId) {
+      setUploadMsg('Create a project before uploading documents.');
+      return;
+    }
     const oversized = files.find((f) => f.size > 25 * 1024 * 1024);
-    if (oversized) { setUploadMsg('File exceeds 25MB limit.'); return; }
-    setUploadMsg(`Selected ${files.length} file(s) for demo upload.`);
+    if (oversized) {
+      setUploadMsg('File exceeds 25MB limit.');
+      return;
+    }
+    try {
+      await knowledgeService.uploadDocument(knowledgeProjectId, files[0]);
+      const docs = await knowledgeService.getDocuments(knowledgeProjectId);
+      setDocuments(docs.map((d) => ({
+        id: d.id,
+        name: d.name,
+        source: d.mime_type || 'upload',
+        updated: d.created_at,
+        score: 0,
+        category: 'Engineering',
+      })));
+      setUploadMsg(`Uploaded ${files.length} file(s).`);
+    } catch (e) {
+      setUploadMsg(e.message || 'Upload failed.');
+    }
   };
 
   const handleUploadBtn = () => {
@@ -178,8 +238,8 @@ export default function KnowledgeSources() {
       </div>
 
       <div className="repo-list">
-        {mockRepositories.map((r) => (
-          <RepositoryRow key={r.id} repo={r} />
+        {repositories.map((r) => (
+          <RepositoryRow key={r.id} repo={{ name: r.name, subtitle: r.full_name || r.clone_url, newCommits: 0, iconColor: 'teal' }} />
         ))}
       </div>
 

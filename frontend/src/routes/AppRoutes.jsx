@@ -5,6 +5,8 @@ import Intro from '../pages/Intro';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
 import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
+import AuthCallback from '../pages/auth/AuthCallback';
 import Dashboard from '../pages/Dashboard';
 import Projects from '../pages/Projects';
 import KnowledgeSources from '../pages/KnowledgeSources';
@@ -20,6 +22,8 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/" element={<Navigate to="/intro" replace />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>

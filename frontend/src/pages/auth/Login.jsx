@@ -20,7 +20,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [forgotMsg, setForgotMsg] = useState('');
 
   const [form, setForm] = useState({
     name: '',
@@ -40,7 +39,6 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setForgotMsg('');
 
     if (!validateEmail(form.email)) { setError('Please enter a valid email address.'); return; }
     if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
@@ -54,11 +52,18 @@ export default function Login() {
     try {
       if (mode === 'login') {
         await login(form.email, form.password);
+        setSuccess('Signed in successfully.');
+        navigate('/dashboard', { replace: true });
       } else {
-        await signup(form.name, form.email, form.password);
+        const res = await signup(form.name, form.email, form.password);
+        if (res?.requiresVerification) {
+          setSuccess('Account created! Please check your email to verify your account before logging in.');
+          setMode('login');
+        } else {
+          setSuccess('Account created successfully.');
+          navigate('/dashboard', { replace: true });
+        }
       }
-      setSuccess(mode === 'login' ? 'Signed in successfully.' : 'Account created successfully.');
-      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Authentication failed.');
     } finally {
@@ -67,11 +72,7 @@ export default function Login() {
   };
 
   const handleForgot = () => {
-    if (!validateEmail(form.email)) {
-      setForgotMsg('Enter your email above to request a reset link.');
-      return;
-    }
-    setForgotMsg('Demo mode: password recovery backend is not configured. No email was sent.');
+    navigate('/forgot-password');
   };
 
   return (
@@ -172,7 +173,6 @@ export default function Login() {
 
               {error && <div className="auth-error">{error}</div>}
               {success && <div className="auth-success">{success}</div>}
-              {forgotMsg && <div className="auth-note">{forgotMsg}</div>}
 
               <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
                 {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}

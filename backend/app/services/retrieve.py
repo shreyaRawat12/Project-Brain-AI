@@ -2,14 +2,20 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import psycopg
-from sentence_transformers import SentenceTransformer
 
 # Load from backend/.env
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=env_path)
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
-model = SentenceTransformer(MODEL_NAME)
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer(MODEL_NAME)
+    return _model
 
 # BGE models require this prefix ONLY for search queries, never for database chunks
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
@@ -18,7 +24,7 @@ DB_URI = os.getenv("DATABASE_URL")
 
 def embed_query(question: str):
     # Step 1: Add the instruction prefix to the question before embedding
-    return model.encode(QUERY_PREFIX + question, normalize_embeddings=True).tolist()
+    return get_model().encode(QUERY_PREFIX + question, normalize_embeddings=True).tolist()
 
 def retrieve(question: str, k: int = 6):
     q = embed_query(question)
