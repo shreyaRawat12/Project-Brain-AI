@@ -1,96 +1,106 @@
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+.projects-page {
+  background: #0B141E;
+  min-height: 100%;
+  padding: 0;
+  color: var(--text);
 }
-
-.stat-card {
-  background: rgba(66, 97, 106, 0.35);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
+.projects-header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: transform .15s ease, border-color .15s ease;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
 }
-
-.stat-card:hover { transform: translateY(-2px); border-color: rgba(117,198,176,0.35); }
-
-.stat-icon {
-  width: 34px; height: 34px;
-  border-radius: 8px;
-  background: rgba(21,157,145,0.18);
+.projects-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   color: var(--secondary);
-  display: grid; place-items: center;
+  margin-bottom: 6px;
 }
-
-.stat-value { font-size: 24px; font-weight: 700; }
-.stat-label { font-size: 12px; color: var(--muted); }
-
-.project-count {
-  font-size: 13px;
+.projects-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #EAF4F0;
+}
+.projects-subtitle {
+  font-size: 12px;
+  color: #8FA9A3;
+  margin: 0;
+}
+.create-project-btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.projects-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.projects-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 200px;
+  height: 27px;
+  padding: 0 8px;
+  background: rgba(29,53,70,0.6);
+  border: 1px solid rgba(117,198,176,0.2);
+  border-radius: 6px;
   color: var(--muted);
-  white-space: nowrap;
 }
-
-.clear-btn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+.projects-search input {
+  flex: 1;
   background: transparent;
   border: none;
-  color: var(--muted);
-  cursor: pointer;
+  outline: none;
+  color: var(--text);
+  font-size: 12px;
 }
-
-.filter-tabs {
+.projects-toolbar-right {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
-
-.filter-tab {
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: rgba(29,53,70,0.6);
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  transition: all .15s ease;
-}
-
-.filter-tab.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.indexing-info { margin-top: 4px; }
-
-.progress-track {
-  height: 6px;
-  background: rgba(29,53,70,0.6);
-  border-radius: 999px;
+.view-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(117,198,176,0.2);
+  border-radius: 6px;
   overflow: hidden;
+  background: rgba(29,53,70,0.6);
 }
-
-.progress-bar {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--primary);
+.view-toggle button {
+  width: 26px;
+  height: 27px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
 }
-
-.progress-bar.status-synced { background: var(--primary); }
-.progress-bar.status-processing { background: #3b82f6; }
-.progress-bar.status-attention { background: #f59e0b; }
-
-.status-badge.status-synced { background: rgba(21,157,145,0.18); color: var(--secondary); }
-.status-badge.status-processing { background: rgba(59,130,246,0.18); color: #93c5fd; }
-.status-badge.status-attention { background: rgba(245,158,11,0.18); color: #fcd34d; }
-
-.search-input-wrap { position: relative; }
-.search-input-wrap .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+.view-toggle button.active {
+  background: rgba(21,157,145,0.18);
+  color: var(--text);
+}
+.sync-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 27px;
+  padding: 0 10px;
+  background: rgba(29,53,70,0.6);
+  border: 1px solid rgba(117,198,176,0.2);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.sync-all-btn:hover { border-color: var(--primary); }

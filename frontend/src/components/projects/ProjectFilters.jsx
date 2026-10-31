@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import './ProjectFilters.css';
 import { Search, X } from 'lucide-react';
 
@@ -27,13 +28,16 @@ export default function ProjectFilters({ search, setSearch, filter, setFilter, c
       </div>
       <div className="filter-tabs">
         {FILTERS.map((f) => (
-          <button
+          <motion.button
             key={f.key}
             className={`filter-tab${filter === f.key ? ' active' : ''}`}
             onClick={() => setFilter(f.key)}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            layout
           >
             {f.label}
-          </button>
+          </motion.button>
         ))}
       </div>
       <div className="project-count">{count} projects</div>
