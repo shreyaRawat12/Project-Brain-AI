@@ -15,6 +15,10 @@ import CommitHistory from '../pages/CommitHistory';
 import Settings from '../pages/Settings';
 import ProjectKnowledge from '../pages/ProjectKnowledge';
 
+// Development-only: open the existing app directly without the intro/auth flow.
+// In production this stays false so the normal intro/auth behavior is preserved.
+const DEV_DIRECT_ENTRY = import.meta.env.DEV;
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -24,7 +28,7 @@ export default function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/" element={<Navigate to="/intro" replace />} />
+      <Route path="/" element={<Navigate to={DEV_DIRECT_ENTRY ? "/dashboard" : "/intro"} replace />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
