@@ -1,52 +1,32 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, RefreshCw, FolderKanban } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Search, Grid, List, RefreshCw, FolderKanban } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import * as projectService from '../services/projectService';
-import ProjectFilters from '../components/projects/ProjectFilters';
+import { useProjects } from '../context/ProjectContext';
 import ProjectGrid from '../components/projects/ProjectGrid';
 import CreateProjectModal from '../components/projects/CreateProjectModal';
-import DeleteConfirmDialog from '../components/projects/DeleteConfirmDialog';
+import RemoveProjectModal from '../components/projects/RemoveProjectModal';
+import ProjectDetailsModal from '../components/projects/ProjectDetailsModal';
+import './Projects.css';
 
 export default function Projects() {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
+  const { projects, loading, error, fetchProjects, createProject, deleteProject, setProjects } = useProjects();
   const navigate = useNavigate();
 
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [sort, setSort] = useState('updated');
-  const [view, setView] = useState('grid');
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
-
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-
+  const [viewMode, setViewMode] = useState('grid');
+  const [importOpen, setImportOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [removing, setRemoving] = useState(false);
+  const [detailsProject, setDetailsProject] = useState(null);
+  const [syncingIds, setSyncingIds] = useState(new Set());
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
-  const fetchProjects = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await projectService.getProjects();
-      setProjects(data);
-    } catch (e) {
-      setError(e.message || 'Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   useEffect(() => {
     if (toast) {
@@ -55,132 +35,95 @@ export default function Projects() {
     }
   }, [toast]);
 
-  const visibleProjects = useMemo(() => {
-    if (isAdmin) return projects;
-    return projects.filter((p) => (p.members || []).includes(user?.id));
-  }, [projects, isAdmin, user]);
-
   const filtered = useMemo(() => {
-    let list = [...visibleProjects];
     const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          (p.description || '').toLowerCase().includes(q)
-      );
-    }
-    if (statusFilter !== 'All') {
-      list = list.filter((p) => p.status === statusFilter);
-    }
-    if (sort === 'updated') {
-      list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    } else if (sort === 'created') {
-      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (sort === 'name') {
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    return list;
-  }, [visibleProjects, search, statusFilter, sort]);
+    if (!q) return projects;
+    return projects.filter((p) => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q));
+  }, [projects, search]);
 
-  const handleOpen = (project) => {
-    navigate(`/project-knowledge/${project.id}`);
+  const handleImport = async (data) => {
+    await createProject(data);
+    showToast('Project imported successfully', 'success');
   };
 
-  const handleModalSubmit = async (data) => {
-    if (editingProject) {
-      const updated = await projectService.updateProject(editingProject.id, data);
-      setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-      showToast('Project updated successfully', 'success');
-    } else {
-      const created = await projectService.createProject(data);
-      setProjects((prev) => [created, ...prev]);
-      showToast('Project created successfully', 'success');
-    }
-  };
-
-  const handleEdit = (project) => {
-    setEditingProject(project);
-    setModalOpen(true);
-  };
-
-  const handleArchive = async (project) => {
+  const handleSync = async (project) => {
+    if (syncingIds.has(project.id) || project.status === 'processing') return;
+    setSyncingIds((prev) => new Set(prev).add(project.id));
+    setProjects((prev) => prev.map((p) => p.id === project.id ? { ...p, status: 'processing', indexingProgress: Math.max(p.indexingProgress || 0, 10), lastSynced: 'Syncing now (demo)' } : p));
     try {
-      const updated = await projectService.archiveProject(project.id);
-      setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-      showToast('Project archived', 'success');
+      for (let i = 20; i <= 100; i += 20) {
+        await new Promise((r) => setTimeout(r, 300));
+        setProjects((prev) => prev.map((p) => p.id === project.id ? { ...p, indexingProgress: i } : p));
+      }
+      setProjects((prev) => prev.map((p) => p.id === project.id ? { ...p, status: 'synced', indexingProgress: 100, lastSynced: 'Just now (demo)' } : p));
+      showToast('Demo sync completed (simulated)', 'success');
     } catch (e) {
-      showToast(e.message || 'Failed to archive', 'error');
-    }
-  };
-
-  const handleDeleteRequest = (project) => {
-    setDeleteTarget(project);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await projectService.deleteProject(deleteTarget.id);
-      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-      showToast('Project deleted', 'success');
-      setDeleteTarget(null);
-    } catch (e) {
-      showToast(e.message || 'Failed to delete', 'error');
+      showToast('Demo sync failed (simulated)', 'error');
     } finally {
-      setDeleting(false);
+      setSyncingIds((prev) => { const n = new Set(prev); n.delete(project.id); return n; });
     }
   };
 
-  const openCreateModal = () => {
-    setEditingProject(null);
-    setModalOpen(true);
+  const handleSyncAll = async () => {
+    for (const p of projects) {
+      await handleSync(p);
+    }
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditingProject(null);
+  const handleExplore = (project) => navigate(`/project-knowledge/${project.id}`);
+  const handleAskBrain = () => navigate('/assistant');
+  const handleViewDetails = (project) => setDetailsProject(project);
+  const handleRemoveRequest = (project) => setRemoveTarget(project);
+
+  const handleRemoveConfirm = async () => {
+    if (!removeTarget) return;
+    setRemoving(true);
+    try {
+      await deleteProject(removeTarget.id);
+      showToast('Project removed from Brain AI', 'success');
+      setRemoveTarget(null);
+    } catch (e) {
+      showToast(e.message || 'Failed to remove', 'error');
+    } finally {
+      setRemoving(false);
+    }
   };
 
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Projects</h1>
-          <p className="page-subtitle">Create, organize and manage all your projects in one place.</p>
+    <motion.div className="projects-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
+      <div className="projects-header">
+        <div className="projects-heading">
+          <div className="projects-eyebrow">YOUR DELIVERY MEMORY</div>
+          <h1 className="projects-title">Projects</h1>
+          <p className="projects-subtitle">Connected repositories, memory health, and the context behind every release.</p>
         </div>
-        {isAdmin && (
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <Plus size={16} /> New Project
-          </button>
-        )}
+        <button className="btn btn-primary create-project-btn" onClick={() => setImportOpen(true)}>
+          <Plus size={14} /> Create project
+        </button>
       </div>
 
-      {!loading && !error && visibleProjects.length > 0 && (
-        <ProjectFilters
-          search={search}
-          setSearch={setSearch}
-          status={statusFilter}
-          setStatus={setStatusFilter}
-          sort={sort}
-          setSort={setSort}
-          view={view}
-          setView={setView}
-        />
-      )}
-
+      <div className="projects-toolbar">
+        <div className="projects-search">
+          <Search size={13} />
+          <input type="text" placeholder="Search projects..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="projects-toolbar-right">
+          <div className="view-toggle">
+            <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')} aria-label="Grid view"><Grid size={13} /></button>
+            <button className={viewMode === 'list' ? 'active' : ''} onClick={() => setViewMode('list')} aria-label="List view"><List size={13} /></button>
+          </div>
+          <button className="sync-all-btn" onClick={handleSyncAll}><RefreshCw size={13} /> Sync all</button>
+        </div>
+      </div>
       {loading && (
         <div className="project-grid">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton" />
-          ))}
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton" />)}
         </div>
       )}
 
       {!loading && error && (
         <div className="error-state">
-          <RefreshCw size={40} />
+          <RefreshCw size={32} />
           <h3>Something went wrong</h3>
           <p>{error}</p>
           <button className="btn btn-primary" onClick={fetchProjects} style={{ marginTop: 12 }}>
@@ -189,55 +132,55 @@ export default function Projects() {
         </div>
       )}
 
-      {!loading && !error && visibleProjects.length === 0 && (
+      {!loading && !error && filtered.length === 0 && (
         <div className="empty-state">
-          <FolderKanban size={48} />
-          <h3>No projects yet</h3>
-          <p>{isAdmin ? 'Create your first project to get started.' : 'You have no assigned projects.'}</p>
-          {isAdmin && (
-            <button className="btn btn-primary" onClick={openCreateModal} style={{ marginTop: 12 }}>
-              <Plus size={16} /> Create Project
+          <FolderKanban size={40} />
+          <h3>{projects.length === 0 ? 'No projects yet' : 'No matching projects'}</h3>
+          <p>{projects.length === 0 ? 'Import an existing project to get started.' : 'Try adjusting your search.'}</p>
+          {projects.length === 0 && (
+            <button className="btn btn-primary" onClick={() => setImportOpen(true)} style={{ marginTop: 12 }}>
+              <Plus size={16} /> Create project
             </button>
           )}
-        </div>
-      )}
-
-      {!loading && !error && visibleProjects.length > 0 && filtered.length === 0 && (
-        <div className="no-results">
-          <FolderKanban size={40} />
-          <h3>No matching projects</h3>
-          <p>Try adjusting your search or filters.</p>
         </div>
       )}
 
       {!loading && !error && filtered.length > 0 && (
         <ProjectGrid
           projects={filtered}
-          view={view}
-          onOpen={handleOpen}
-          onEdit={handleEdit}
-          onArchive={handleArchive}
-          onDelete={handleDeleteRequest}
-          isAdmin={isAdmin}
+          viewMode={viewMode}
+          onExplore={handleExplore}
+          onAskBrain={handleAskBrain}
+          onViewDetails={handleViewDetails}
+          onRemove={handleRemoveRequest}
+          onConnectRepository={() => setImportOpen(true)}
+          syncingIds={syncingIds}
+          onSync={handleSync}
         />
       )}
 
       <CreateProjectModal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        onSubmit={handleModalSubmit}
-        initial={editingProject}
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSubmit={handleImport}
         existingNames={projects.map((p) => p.name)}
       />
 
-      <DeleteConfirmDialog
-        project={deleteTarget}
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirm}
-        loading={deleting}
+      <RemoveProjectModal
+        isOpen={!!removeTarget}
+        project={removeTarget}
+        onCancel={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveConfirm}
+        loading={removing}
+      />
+
+      <ProjectDetailsModal
+        isOpen={!!detailsProject}
+        onClose={() => setDetailsProject(null)}
+        project={detailsProject}
       />
 
       {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
-    </>
+    </motion.div>
   );
 }

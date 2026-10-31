@@ -1,52 +1,72 @@
-import { Folder, FileText, GitBranch, Calendar, ArrowRight } from 'lucide-react';
-import ProjectActions from './ProjectActions';
+import { motion } from 'framer-motion';
+import { Code2, GitBranch, FileText, Brain, ArrowRight } from 'lucide-react';
+import { useReducedMotion } from 'framer-motion';
+import './ProjectCard.css';
+import ProjectActionsMenu from './ProjectActionsMenu';
 
-function formatDate(iso) {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch (e) {
-    return iso;
-  }
-}
+const ICON_COLORS = {
+  teal: 'var(--secondary)',
+  violet: '#a78bfa',
+  amber: '#fbbf24',
+};
 
-export default function ProjectCard({ project, view, onOpen, onEdit, onArchive, onDelete, isAdmin }) {
+export default function ProjectCard({ project, viewMode = 'grid', onExplore, onAskBrain, onManageSources, onViewDetails, onRemove, onSync, isSyncing }) {
+  const reduce = useReducedMotion();
+  const health = project.memoryHealth ?? project.indexingProgress ?? 0;
+  const branch = project.branch || 'main';
+  const files = project.files ? `${project.files} files` : `${project.documents ?? 0} files`;
+  const iconColor = ICON_COLORS[project.iconColor] || 'var(--secondary)';
+
   return (
-    <div className={`project-card${view === 'list' ? ' list' : ''}`}>
+    <motion.div
+      className={`project-card project-card-${viewMode}`}
+      initial={reduce ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      whileHover={reduce ? {} : { y: -2 }}
+    >
       <div className="card-top">
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div className="project-icon">
-            <Folder size={20} />
-          </div>
-          <div>
-            <h3 className="project-name">{project.name}</h3>
-            <span className={`status-badge ${project.status === 'Active' ? 'status-active' : 'status-archived'}`}>
-              {project.status}
-            </span>
-          </div>
+        <div className="card-icon" style={{ color: iconColor }}>
+          <Code2 size={15} />
         </div>
-        <ProjectActions
-          project={project}
-          onEdit={onEdit}
-          onArchive={onArchive}
-          onDelete={onDelete}
-          isAdmin={isAdmin}
+        <ProjectActionsMenu
+          onExplore={onExplore}
+          onManageSources={onManageSources}
+          onViewDetails={onViewDetails}
+          onRemove={onRemove}
         />
       </div>
 
-      <p className="project-desc">{project.description || 'No description provided.'}</p>
+      <div className="card-title">{project.name}</div>
+      <div className="card-desc">{project.description}</div>
+
+      <div className="card-divider" />
 
       <div className="card-meta">
-        <span><FileText size={13} /> {project.documents} docs</span>
-        <span><GitBranch size={13} /> {project.repositories} repos</span>
-        <span><Calendar size={13} /> Updated {formatDate(project.updatedAt)}</span>
+        <span><GitBranch size={12} /> {branch}</span>
+        <span><FileText size={12} /> {files}</span>
+      </div>
+
+      <div className="card-divider" />
+
+      <div className="memory-health">
+        <div className="memory-health-head">
+          <span>Memory health</span>
+          <span className="memory-health-value">{health}%</span>
+        </div>
+        <div className="memory-health-track">
+          <div className="memory-health-bar" style={{ width: `${health}%` }} />
+        </div>
       </div>
 
       <div className="card-footer">
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Created {formatDate(project.createdAt)}</span>
-        <button className="btn btn-primary" onClick={() => onOpen(project)} style={{ padding: '8px 12px', fontSize: 13 }}>
-          Open Project <ArrowRight size={14} />
+        <button className="memory-btn" onClick={onExplore}>
+          <Brain size={13} /> Memory
+        </button>
+        <button className="ask-brain-btn" onClick={onAskBrain}>
+          <ArrowRight size={13} /> Ask brain
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
