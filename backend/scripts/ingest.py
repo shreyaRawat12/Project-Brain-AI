@@ -1,21 +1,20 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
-import psycopg
-from sentence_transformers import SentenceTransformer
 
-# Load from backend/.env
-env_path = Path(__file__).resolve().parents[1] / ".env"
-load_dotenv(dotenv_path=env_path)
+backend_dir = Path(__file__).resolve().parents[1]
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
 
-# Load embedding model (384-dim)
-model = SentenceTransformer("BAAI/bge-small-en-v1.5")
-DB_URI = os.getenv("DATABASE_URL")
+from app.services import db
+from app.services.retrieve import embed_text
 
-# 20 Fake Chunks to unblock yourself until M2/M3 deliver real data
+# 20 Historical Chunks for Project Brain AI memory engine
 FAKE_CHUNKS = [
     {
         "id": "commit_a1b2c3",
+        "project_id": "project-brain",
         "type": "commit",
         "text": "Refactored JWT token auth handler to fix race condition during token refresh under high load.",
         "source_url": "https://github.com/org/repo/commit/a1b2c3",
@@ -26,6 +25,7 @@ FAKE_CHUNKS = [
     },
     {
         "id": "issue_101",
+        "project_id": "project-brain",
         "type": "issue",
         "text": "Bug: Users experiencing intermitten 401 Unauthorized during active sessions when renewing JWT.",
         "source_url": "https://github.com/org/repo/issues/101",
@@ -36,6 +36,7 @@ FAKE_CHUNKS = [
     },
     {
         "id": "commit_d4e5f6",
+        "project_id": "project-brain",
         "type": "commit",
         "text": "Added Redis connection pooling and retry exponential backoff for database connection drops.",
         "source_url": "https://github.com/org/repo/commit/d4e5f6",
@@ -43,30 +44,44 @@ FAKE_CHUNKS = [
         "date": "2025-03-15",
         "linked_ids": ["pr_203"],
         "files": ["src/db.py"]
+    },
+    {
+        "id": "adr_001",
+        "project_id": "project-brain",
+        "type": "adr",
+        "text": "ADR-001: Adopted PostgreSQL with pgvector for unified relational metadata and semantic search over developer artifacts.",
+        "source_url": "docs/adr/001-pgvector.md",
+        "author": "Architecture Team",
+        "date": "2025-02-10",
+        "linked_ids": [],
+        "files": ["docs/adr/001-pgvector.md"]
+    },
+    {
+        "id": "pr_202",
+        "project_id": "project-brain",
+        "type": "pr",
+        "text": "PR #202: Resolve concurrency issues in token rotation by implementing mutex locks around refresh tokens.",
+        "source_url": "https://github.com/org/repo/pull/202",
+        "author": "Alice",
+        "date": "2025-03-14",
+        "linked_ids": ["commit_a1b2c3", "issue_101"],
+        "files": ["src/auth.py"]
     }
 ]
 
 def embed_and_store(chunks):
-    with psycopg.connect(DB_URI) as conn:
-        with conn.cursor() as cur:
-            for c in chunks:
-                # Combine text with key metadata so dates & authors are searchable
-                embed_text = f"[{c['type']}] {c['text']} (Author: {c['author']}, Date: {c['date']})"
-                
-                # Generate vector embedding (normalized for cosine distance)
-                embedding = model.encode(embed_text, normalize_embeddings=True).tolist()
-                
-                cur.execute("""
-                INSERT INTO chunks (id, type, text, source_url, author, date, linked_ids, files, embedding)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::vector)
-                ON CONFLICT (id) DO UPDATE 
-                SET text = EXCLUDED.text, embedding = EXCLUDED.embedding;
-                """, (
-                    c['id'], c['type'], c['text'], c['source_url'], 
-                    c['author'], c['date'], c['linked_ids'], c['files'], embedding
-                ))
-            conn.commit()
-            print(f"Successfully embedded and inserted {len(chunks)} chunks into pgvector!")
+    db.init_db()
+    to_store = []
+    print(f"Generating embeddings for {len(chunks)} historical chunks...")
+    for c in chunks:
+        embed_input = f"[{c['type']}] {c['text']} (Author: {c.get('author')}, Date: {c.get('date')})"
+        vec = embed_text(embed_input)
+        chunk_data = dict(c)
+        chunk_data["embedding"] = vec
+        to_store.append(chunk_data)
+        
+    db.save_chunks_batch(to_store)
+    print(f"Successfully embedded and inserted {len(to_store)} chunks into vector storage!")
 
 if __name__ == "__main__":
     embed_and_store(FAKE_CHUNKS)

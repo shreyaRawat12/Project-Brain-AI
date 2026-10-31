@@ -1,16 +1,30 @@
-// Base API client placeholder.
-// When FastAPI backend is ready, set VITE_API_BASE_URL and replace mock service calls.
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function apiRequest(path, options = {}) {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = isFormData
+    ? { ...(options.headers || {}) }
+    : { 'Content-Type': 'application/json', ...(options.headers || {}) };
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
+    headers,
   });
+
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `Request failed: ${res.status}`);
+    let errMsg = `Request failed: ${res.status}`;
+    try {
+      const errJson = await res.json();
+      errMsg = errJson.detail || errJson.message || errMsg;
+    } catch {
+      try {
+        const text = await res.text();
+        if (text) errMsg = text;
+      } catch {}
+    }
+    throw new Error(errMsg);
   }
+
   return res.json();
 }
 

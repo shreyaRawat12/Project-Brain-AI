@@ -5,3 +5,6 @@ sentence-transformers
 psycopg[binary]
 google-genai
 python-dotenv
+python-multipart
+pypdf
+python-docx
