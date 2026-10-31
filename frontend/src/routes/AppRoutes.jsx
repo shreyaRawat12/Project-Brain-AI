@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../components/common/MainLayout';
 import ProtectedRoute from './ProtectedRoute';
+import Intro from '../pages/Intro';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
 import ForgotPassword from '../pages/auth/ForgotPassword';
@@ -15,12 +16,13 @@ import ProjectKnowledge from '../pages/ProjectKnowledge';
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/intro" element={<Intro />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route path="/signup" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/" element={<Navigate to="/intro" replace />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/knowledge" element={<KnowledgeSources />} />
