@@ -205,7 +205,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isAdmin = user?.role === 'Admin';
-  const introSeen = () => localStorage.getItem(INTRO_KEY) === 'true';
+  const introSeen = () => false;
   const markIntroSeen = () => localStorage.setItem(INTRO_KEY, 'true');
 
   return (
