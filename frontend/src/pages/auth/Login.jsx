@@ -194,7 +194,7 @@ export default function Login() {
             </div>
 
             <div className="demo-note auth-demo-note">
-              Demo mode: authentication is frontend-only. Use any registered email (e.g. alex@projectbrain.ai) with a 6+ character password.
+              Demo credentials — Email: xyz@gmail.com · Password: 12345678
             </div>
           </motion.div>
         </AnimatePresence>

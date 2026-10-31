@@ -46,9 +46,10 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     await new Promise((r) => setTimeout(r, 600));
-    const found = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!found) throw new Error('No account found for this email (demo mode).');
-    if (!password || password.length < 6) throw new Error('Password must be at least 6 characters.');
+    if (email.trim().toLowerCase() !== 'xyz@gmail.com' || password !== '12345678') {
+      throw new Error('Invalid demo credentials. Use xyz@gmail.com / 12345678.');
+    }
+    const found = users.find((u) => u.email.toLowerCase() === 'xyz@gmail.com') || { id: 'demo-user', name: 'Demo User', email: 'xyz@gmail.com', role: 'Admin' };
     const t = `demo-token-${Date.now()}`;
     persistSession(found, t);
     return found;
